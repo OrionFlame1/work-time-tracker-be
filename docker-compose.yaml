@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  database:
+    image: mariadb
+    container_name: work_time_tracker_db
+    environment:
+      MARIADB_DATABASE: work_time_tracker
+      MARIADB_ROOT_PASSWORD: mata
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - ./db_scripts/tables.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./db_scripts/users.sql:/docker-entrypoint-initdb.d/2.sql
+  api:
+    depends_on:
+    - database
+    container_name: work_time_tracker_api
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 5000:5000
+    environment:
+      - DATABASE_HOST=database
+    env_file:
+      - .env
+    restart: always
