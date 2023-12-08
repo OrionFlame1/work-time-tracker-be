@@ -11,8 +11,9 @@ app.secret_key = 'W4Qr2R7MB7'
 # Routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    email = request.args.get('email')
-    password = request.args.get('password')
+    # data = request.form
+    email = request.form.get('email')
+    password = request.form.get('password')
 
     cursor = mydb.cursor()
     cursor.execute('SELECT * FROM accounts WHERE email = %s AND password = %s', (email, password))
