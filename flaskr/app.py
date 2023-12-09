@@ -1,5 +1,9 @@
-from flask import Flask, request, redirect, url_for, session, jsonify
+import json
+from datetime import datetime
+
+from flask import Flask, request, redirect, url_for, session, jsonify, make_response
 from flask_cors import CORS
+
 import db
 
 app = Flask(__name__)
@@ -35,10 +39,16 @@ def login():
 def dashboard():
     if 'user_id' in session:
         cursor = mydb.cursor()
-        cursor.execute(f'SELECT a.id, a.firstname, a.lastname, t.check_in, t.check_out FROM accounts a JOIN timecards t ON t.account_id = {session['user_id']} WHERE a.id = {session['user_id']} GROUP BY a.id')
-        timecards = cursor.fetchall()
+        cursor.execute(f'SELECT * FROM timecards JOIN accounts on timecards.account_id = accounts.id WHERE timecards.account_id = {session['user_id']}')
+        results = cursor.fetchall()
         cursor.close()
-        return timecards
+        response = []
+        for result in results:
+            response.append({'id': result[0],
+                                     'check_in': datetime.strptime(str(result[2]), '%Y-%m-%d %H:%M:%S'),
+                                     'check_out': datetime.strptime(str(result[3]), '%Y-%m-%d %H:%M:%S'),
+                                     'full_name': f'{result[5]} {result[6]}'})
+        return jsonify(resp=response)
     else:
         return redirect(url_for('login'))
 

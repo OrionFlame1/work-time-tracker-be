@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS work_time_tracker.accounts (
 );
 
 CREATE TABLE IF NOT EXISTS work_time_tracker.timecards (
-  `id` integer PRIMARY KEY,
+  `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `account_id` integer,
   `check_in` timestamp,
   `check_out` timestamp
 );
 
 CREATE TABLE IF NOT EXISTS work_time_tracker.tasks (
-  `id` integer PRIMARY KEY,
+  `id` integer PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `account_id` integer,
   `task_name` varchar(255),
   `task_desc` text,
