@@ -1,7 +1,9 @@
 from flask import Flask, request, redirect, url_for, session, jsonify
+from flask_cors import CORS
 import db
 
 app = Flask(__name__)
+CORS(app)
 
 mydb = db.init_db()
 
@@ -21,6 +23,7 @@ def login():
     cursor.close()
 
     if user:
+        session['user_id'] = user[0]
         return jsonify({'status': 'success', 'id': user[0], 'firstname': user[1], 'lastname': user[2], 'type': user[5]})
         # return redirect(url_for('dashboard'))
     else:
@@ -28,10 +31,14 @@ def login():
             'status': 'failed'
         })
 
-@app.route('/dashboard')
+@app.route('/dashboard') # to add further info about current user
 def dashboard():
     if 'user_id' in session:
-        return f'Welcome, User {session["user_id"]}!'
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT a.id, a.firstname, a.lastname, t.check_in, t.check_out FROM accounts a JOIN timecards t ON t.account_id = {session['user_id']} WHERE a.id = {session['user_id']} GROUP BY a.id')
+        timecards = cursor.fetchall()
+        cursor.close()
+        return timecards
     else:
         return redirect(url_for('login'))
 
