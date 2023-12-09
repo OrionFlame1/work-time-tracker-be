@@ -1,8 +1,9 @@
-import json
 from datetime import datetime
 
-from flask import Flask, request, redirect, url_for, session, jsonify, make_response
+from flask import Flask, request, redirect, url_for, session, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
 
 import db
 
@@ -58,4 +59,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=(os.getenv("ENVIRONMENT") != "PRODUCTION"), host="0.0.0.0", port=5000)
