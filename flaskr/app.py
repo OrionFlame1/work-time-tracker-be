@@ -1,7 +1,14 @@
+from datetime import datetime
+
 from flask import Flask, request, redirect, url_for, session, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
 import db
 
 app = Flask(__name__)
+CORS(app)
 
 mydb = db.init_db()
 
@@ -21,6 +28,7 @@ def login():
     cursor.close()
 
     if user:
+        session['user_id'] = user[0]
         return jsonify({'status': 'success', 'id': user[0], 'firstname': user[1], 'lastname': user[2], 'type': user[5]})
         # return redirect(url_for('dashboard'))
     else:
@@ -28,10 +36,20 @@ def login():
             'status': 'failed'
         })
 
-@app.route('/dashboard')
+@app.route('/dashboard') # to add further info about current user
 def dashboard():
     if 'user_id' in session:
-        return f'Welcome, User {session["user_id"]}!'
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT * FROM timecards JOIN accounts on timecards.account_id = accounts.id WHERE timecards.account_id = {session['user_id']}')
+        results = cursor.fetchall()
+        cursor.close()
+        response = []
+        for result in results:
+            response.append({'id': result[0],
+                                     'check_in': datetime.strptime(str(result[2]), '%Y-%m-%d %H:%M:%S'),
+                                     'check_out': datetime.strptime(str(result[3]), '%Y-%m-%d %H:%M:%S'),
+                                     'full_name': f'{result[5]} {result[6]}'})
+        return jsonify(resp=response)
     else:
         return redirect(url_for('login'))
 
@@ -41,4 +59,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=(os.getenv("ENVIRONMENT") != "PRODUCTION"), host="0.0.0.0", port=5000)
