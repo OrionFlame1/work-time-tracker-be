@@ -2,10 +2,12 @@ from datetime import datetime
 
 from flask import Flask, request, redirect, url_for, session, jsonify, Response, make_response
 from flask_cors import CORS
+from dotenv import load_dotenv
 import os
 
 import db
 
+load_dotenv()
 app = Flask(__name__)
 app.config.update(
     SESSION_COOKIE_SECURE=True,
