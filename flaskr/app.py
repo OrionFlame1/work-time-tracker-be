@@ -52,7 +52,7 @@ def dashboard():
     print(request.headers)
     if 'user_id' in session:
         cursor = mydb.cursor()
-        cursor.execute(f'SELECT * FROM timecards JOIN accounts on timecards.account_id = accounts.id WHERE timecards.account_id = {session['user_id']}')
+        cursor.execute(f'SELECT * FROM timecards JOIN accounts on timecards.account_id = accounts.id WHERE timecards.account_id = {session['user_id']} ORDER BY timecards.check_in DESC')
         results = cursor.fetchall()
         cursor.close()
         response = []
@@ -61,9 +61,40 @@ def dashboard():
                                      'check_in': datetime.strptime(str(result[2]), '%Y-%m-%d %H:%M:%S'),
                                      'check_out': datetime.strptime(str(result[3]), '%Y-%m-%d %H:%M:%S'),
                                      'full_name': f'{result[5]} {result[6]}'})
+        if results[0][3] is None: # value that indicates if the checkout button shall be shown instead of the checkin one
+            response.append({'action': 'checkout'})
+        else:
+            response.append({'action': 'checkin'})
         return jsonify(resp=response)
     else:
         return redirect(url_for('login'))
+
+@app.route('/checkin', methods=["POST"])
+def checkin():
+    if 'user_id' in session: # check if user is logged
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT * FROM timecards WHERE account_id = {session['user_id']} ORDER BY check_in DESC LIMIT 1') # check if current user has an active checkin
+        result = cursor.fetchone()
+        if result[3] is None: # check if the last timecards has a checkout not null
+            return jsonify({"message": "You can't check-in with another active check-in. Check-out first!", "error": 1})
+        cursor.execute(f'INSERT INTO timecards SET account_id = {session['user_id']}, check_in = CURRENT_TIMESTAMP()')
+        return jsonify({"message": "You checked-in successfully", "error": 0})
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/checkout', methods=["POST"])
+def checkout():
+    if 'user_id' in session: # check if user is logged:
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT * FROM timecards WHERE account_id = {session['user_id']} ORDER BY check_in DESC LIMIT 1')  # check if current user has an active checkin
+        result = cursor.fetchone()
+        if result[3] is None:
+            cursor.execute(f'UPDATE timecards SET check_out = CURRENT_TIMESTAMP() WHERE account_id = {session['user_id']}')
+            return jsonify({"message": "You checked-out successfully", "error": 0})
+        return jsonify({"message": "You can't checkout without an active checkin", "error": 1})
+    else:
+        return redirect(url_for('login'))
+
 
 @app.route('/logout')
 def logout():
