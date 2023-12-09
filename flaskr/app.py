@@ -1,14 +1,20 @@
 from datetime import datetime
 
-from flask import Flask, request, redirect, url_for, session, jsonify
+from flask import Flask, request, redirect, url_for, session, jsonify, Response, make_response
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
 import db
 
+load_dotenv()
 app = Flask(__name__)
-CORS(app)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='None',
+)
+CORS(app, supports_credentials=True)
 
 mydb = db.init_db()
 
@@ -19,8 +25,11 @@ app.secret_key = 'W4Qr2R7MB7'
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # data = request.form
-    email = request.form.get('email')
-    password = request.form.get('password')
+    # email = request.form.get('email')
+    # password = request.form.get('password')
+    data = request.get_json()
+    email = data['email']
+    password = data['password']
 
     cursor = mydb.cursor()
     cursor.execute('SELECT * FROM accounts WHERE email = %s AND password = %s', (email, password))
@@ -29,7 +38,9 @@ def login():
 
     if user:
         session['user_id'] = user[0]
-        return jsonify({'status': 'success', 'id': user[0], 'firstname': user[1], 'lastname': user[2], 'type': user[5]})
+        resp = make_response(jsonify({'status': 'success', 'id': user[0], 'firstname': user[1], 'lastname': user[2], 'type': user[5]}))
+        resp.headers['Access-Control-Expose-Headers'] = 'Set-Cookie'
+        return resp
         # return redirect(url_for('dashboard'))
     else:
         return jsonify({
@@ -38,6 +49,7 @@ def login():
 
 @app.route('/dashboard') # to add further info about current user
 def dashboard():
+    print(request.headers)
     if 'user_id' in session:
         cursor = mydb.cursor()
         cursor.execute(f'SELECT * FROM timecards JOIN accounts on timecards.account_id = accounts.id WHERE timecards.account_id = {session['user_id']}')
