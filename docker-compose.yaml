@@ -12,8 +12,6 @@ services:
     restart: always
     volumes:
       - ./db_scripts/tables.sql:/docker-entrypoint-initdb.d/1.sql
-      - ./db_scripts/users.sql:/docker-entrypoint-initdb.d/2.sql
-      - ./db_scripts/timecards.sql:/docker-entrypoint-initdb.d/3.sql
   api:
     depends_on:
     - database
