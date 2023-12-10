@@ -7,9 +7,9 @@ import os
 
 from flaskr.config import db
 
-from services.accounts import userToJSON, hasAdmin, validateLoginData
-from services.admin import getEmployees, getReports, createAccount
-from services.timecards import getTimecardsByUserDescending, timecardToJSON, getActiveTimecardByUser, addTimecardToUser, closeTimecard, timecard_getId
+from flaskr.services.accounts import userToJSON, hasAdmin, validateLoginData
+from flaskr.services.admin import getEmployees, getReports, createAccount
+from flaskr.services.timecards import getTimecardsByUserDescending, timecardToJSON, getActiveTimecardByUser, addTimecardToUser, closeTimecard, timecard_getId
 
 load_dotenv()
 app = Flask(__name__)
