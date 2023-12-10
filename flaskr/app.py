@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from flask import Flask, request, redirect, url_for, session, jsonify, Response, make_response
@@ -10,6 +11,7 @@ from flaskr.config import db
 from flaskr.services.accounts import userToJSON, hasAdmin, validateLoginData
 from flaskr.services.admin import getEmployees, getReports, createAccount
 from flaskr.services.timecards import getTimecardsByUserDescending, timecardToJSON, getActiveTimecardByUser, addTimecardToUser, closeTimecard, timecard_getId
+from services.tasks import createTask, taskToJSON, updateTask
 
 load_dotenv()
 app = Flask(__name__)
@@ -94,6 +96,45 @@ def checkout():
 
         closeTimecard(timecard_getId(activeTimecard))
         return jsonify({"message": "You checked-out successfully", "error": 0})
+    else:
+        return Response(status=401)
+
+
+@app.route('/task', methods=["POST"])
+def taskPost():
+    if 'user_id' in session:
+        if not hasAdmin(session['user_id']):
+            return Response(status=401)
+
+        data = request.get_json()
+        userId = data['userId']
+        name = data['name']
+        desc = data['description']
+
+        if data['name'] is None:
+            return Response(json.dumps({"message": "Can't create task without a name!"}), status=400)
+
+        result = createTask(userId, name, desc)
+        return jsonify(taskToJSON(result))
+    else:
+        return Response(status=401)
+
+
+@app.route('/task/<id>', methods=["PATCH"])
+def taskPatch(id):
+    if 'user_id' in session:
+        if not hasAdmin(session['user_id']):
+            return Response(status=401)
+
+        data = request.get_json()
+        userId = data['userId']
+        name = data['name']
+        desc = data['description']
+        status = data['status']
+        finish = data['finish']
+
+        updateTask(id, userId, name, desc, status, finish)
+        return Response(status=200)
     else:
         return Response(status=401)
 
