@@ -61,11 +61,26 @@ def dashboard():
                                      'check_in': datetime.strptime(str(result[2]), '%Y-%m-%d %H:%M:%S'),
                                      'check_out': datetime.strptime(str(result[3]), '%Y-%m-%d %H:%M:%S'),
                                      'full_name': f'{result[5]} {result[6]}'})
-        if results[0][3] is None: # value that indicates if the checkout button shall be shown instead of the checkin one
-            response.append({'action': 'checkout'})
-        else:
+        try:
+            if results[0][3] is None: # value that indicates if the checkout button shall be shown instead of the checkin one
+                response.append({'action': 'checkout'})
+            else:
+                response.append({'action': 'checkin'})
+        except IndexError:
             response.append({'action': 'checkin'})
         return jsonify(resp=response)
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/admin', methods=["GET"]) # to add further info about current user
+def admin():
+    if 'user_id' in session:
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT type FROM accounts WHERE id = {session['user_id']}')
+        type = cursor.fetchone()[0]
+        if type == "admin":
+            return jsonify({'message': 'admin'})
+        return jsonify({"message": "fail"})
     else:
         return redirect(url_for('login'))
 
