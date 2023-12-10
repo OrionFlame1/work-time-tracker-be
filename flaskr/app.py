@@ -150,13 +150,12 @@ def create_acc():
             lastname = data['lastname']
             email = data['email']
             password = data['password']
-            # try:
-
-            if data['type'] is not None:
+            try:
                 type = data['type']
-            else:
+            except:
                 type = "employee"
             cursor.execute(f"INSERT INTO accounts SET firstname = '{firstname}', lastname = '{lastname}', email = '{email}', password = '{password}', type = '{type}'")
+            mydb.commit()
             print("created")
             return jsonify({"message": "Account created successfully", "error": 0})
         print("fail admin")
