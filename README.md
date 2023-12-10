@@ -5,6 +5,7 @@
 DATABASE_HOST="localhost" | "database" (depending if you're working on IDE run app 
                                         or docker built app)
 ENVIRONMENT="PRODUCTION" | "STAGING" | "DEVELOPMENT"
+SESSION_SECRET="somerandomkeyobtainedbysmashingmyheadintothekeyboard"
 ```
 
 ### Docker:
