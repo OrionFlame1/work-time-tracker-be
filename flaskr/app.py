@@ -101,5 +101,23 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
+@app.route('/create_acc', methods=["POST"])
+def create_acc():
+    if 'user_id' in session:
+        cursor = mydb.cursor()
+        cursor.execute(f'SELECT type FROM accounts WHERE id = {session['user_id']}')  # check if current user has an active checkin
+        result = cursor.fetchone()
+        if result == "admin":
+            data = request.get_json()
+            firstname = data['firstname']
+            lastname = data['lastname']
+            email = data['email']
+            password = data['password']
+            cursor.execute(f'INSERT INTO accounts SET firstname = {firstname}, lastname = {lastname}, email = {email}, password = {password}')
+            return jsonify({"message": "Account created successfully", "error": 0})
+        return jsonify({"message": "Use an admin account to create a new account", "error": 1})
+    else:
+        return redirect(url_for('login'))
+
 if __name__ == '__main__':
     app.run(debug=(os.getenv("ENVIRONMENT") != "PRODUCTION"), host="0.0.0.0", port=5000)
