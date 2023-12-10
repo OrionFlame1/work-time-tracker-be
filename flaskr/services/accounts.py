@@ -18,7 +18,7 @@ def userToJSON(result):
         "firstname": result[1],
         "lastname": result[2],
         "role": result[5],
-        "email": result[4]
+        "email": result[3]
     }
 
 
