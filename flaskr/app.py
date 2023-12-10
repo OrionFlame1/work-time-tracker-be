@@ -105,7 +105,6 @@ def checkin():
         cursor = mydb.cursor(buffered=True)
         cursor.execute(f'SELECT * FROM timecards WHERE account_id = {session['user_id']} ORDER BY check_in DESC LIMIT 1') # check if current user has an active checkin
         result = cursor.fetchone()
-        print(result)
         if result[3] is None: # check if the last timecards has a checkout not null
             return jsonify({"message": "You can't check-in with another active check-in. Check-out first!", "error": 1})
 
